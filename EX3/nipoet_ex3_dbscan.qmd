@@ -1,0 +1,103 @@
+---
+title: "Exercise 3"
+author: "Nils Poethkow"
+editor: visual
+format: 
+  html:
+    code-fold: true
+---
+
+```{r}
+#| echo: true
+#| warning: false
+
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+rm(list = ls())
+source("nipoet_functions_ex3.R")
+# source("./EX4/nipoet_functions_ex4.R")  # For halfmoon dataset
+
+```
+
+## Create Datasets
+To test the Algorithm a 2d dataset with two possible clusters and an interesting shape (halfmoon) has been created seen in @fig-2dplot1. This dataset should pose a possible problem for a density based clsutering algorithm like the generic grid, because the two clusters have different densities.
+
+```{r}
+#| label: fig-2dplot1
+#| fig-cap: "Plot of 2D dataset 1"
+#| warning: false
+library(plotly)
+library(ggplot2)
+
+ds1 <- nipoet_generate_half_moon(1000)
+ds2 <- matrix(c(rnorm(100, 0, 0.6), rnorm(100, -3, 0.6)), ncol=2)
+
+dataset1 <- rbind(ds1, ds2)
+
+plot_ly(x = ~dataset1[,1], y = ~dataset1[,2], type = 'scatter', mode = 'markers',
+        marker = list(size = 10)) %>%
+  layout(title = "2D Scatter Plot",
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2")
+         )
+```
+
+To validate that the algorithm works good for clusters with comparable densities, a second dataset has been created seen in @fig-2dplot2. The halfmoon shape remains identical, only the cluster in the center gets a smaller deviation.
+
+```{r}
+#| label: fig-2dplot2
+#| fig-cap: "Plot of 2D dataset 2"
+#| warning: false
+ds1 <- nipoet_generate_half_moon(1000)
+ds2 <- matrix(c(rnorm(100, 0, 0.2), rnorm(100, -3, 0.2)), ncol=2)
+
+dataset2 <- rbind(ds1, ds2)
+
+plot_ly(x = ~dataset2[,1], y = ~dataset2[,2], type = 'scatter', mode = 'markers',
+        marker = list(size = 10)) %>%
+  layout(title = "2D Scatter Plot",
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2")
+         )
+```
+
+On top of this, a non halfmoon dataset seen in @fig-2dplot3 was created to test the algorithm further.
+
+```{r}
+#| label: fig-2dplot3
+#| fig-cap: "Plot of 2D dataset 3"
+#| warning: false
+library(MASS)
+set.seed(123)
+n <- 125
+dataset3 <- nipoet_dataset_03(n)
+
+plot_ly(x = ~dataset3[,1], y = ~dataset3[,2], type = 'scatter', mode = 'markers',
+        marker = list(size = 10)) %>%
+  layout(title = "2D Scatter Plot",
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2")
+         )
+```
+
+## DBSCAN
+
+Now the algorithm is tested on the datasets seen above, parameters where adjusted according to the datasets and the outcome with high or low epsilon and density where investigated and plotted below.
+
+```{r}
+dbscan_1 <- nipoet_dbscan(dataset1, eps = 0.5, min_pts = 5)
+dbscan_2 <- nipoet_dbscan(dataset2, eps = 0.5, min_pts = 5)
+dbscan_3 <- nipoet_dbscan(dataset3, eps = 0.6, min_pts = 4)
+nipoet_plot_dbscan_results(dataset1, dbscan_1)
+nipoet_plot_dbscan_results(dataset3, dbscan_3)
+```
+
+Plot the results of a chosen dataset with epsilon and density. Here the outcome of the halfmoon dataset with different densities in the cluster is shows, when choosing a low density.
+
+```{r}
+dbscan_1_density_high <- nipoet_dbscan(dataset1, eps = 0.3, min_pts = 5)
+nipoet_plot_dbscan_results(dataset1, dbscan_1_density_high)
+```
+
+### Conclusion
+
+As seen in the Figures above, density-based approaches have one underlying problem, they use one global density parameter tau for all clusters, even though the density might differ. For these cases algorithms like kmeans are more suitable.

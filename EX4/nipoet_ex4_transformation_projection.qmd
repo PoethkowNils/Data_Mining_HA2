@@ -1,0 +1,122 @@
+---
+title: "Exercise 4"
+author: "Nils Poethkow"
+editor: visual
+format: 
+  html:
+    code-fold: true
+---
+```{r}
+#| echo: false
+#| warning: false
+#| 
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+rm(list = ls())
+
+source("nipoet_functions_ex4.R")
+
+```
+
+## Generate Halfmoon dataset
+
+The function implemented in exercise 3 is used to generate the Halfmoon dataset seen in @fig-halfmoon.
+
+```{r}
+#| label: fig-halfmoon
+#| fig-cap: "Plot of Halfmoon Dataset"
+#| warning: false
+
+n <- 300
+ds_2d <- nipoet_generate_half_moon_dataset(n)
+labels <- c(rep(0, n), rep(1, n))
+
+plot_ly(x = ~ds_2d[,1], y = ~ds_2d[,2], type = 'scatter', mode = 'markers', color = as.factor(labels),
+        marker = list(size = 10)) %>%
+    layout(title = "2D Scatter Plot",
+            scene = list(xaxis = list(title = "X1"),
+            yaxis = list(title = "X2"),
+            zaxis = list(title = "X3"))
+            )
+```
+## Logistic Regression
+
+### 2D Regression
+
+@fig-logistic2d shows the Logistic Regression performed on the halfmoon dataset. It's clearly visible, that the regression doesn't work wenn, since a linear seperation of sich a dataset is not possible.
+
+```{r}
+#| label: fig-logistic2d
+#| fig-cap: "2D Logistic Regression"
+#| warning: false
+
+nipoet_2d_logistic_regression(ds_2d, labels)
+
+```
+
+### Transformation from 2D to 3D
+
+Convert the 2D dataset to 3D to make it cleary seperable. For this, a sin was fitted to the dataset and the separation was made based on the location of the datapoints with respect to the sin curve (@fig-sin). The result is seen in @fig-3d.
+
+```{r}
+#| label: fig-sin
+#| fig-cap: "Fitted sin curve"
+#| warning: false
+
+x_vals <- seq(min(ds_2d[,1]), max(ds_2d[,1]), length.out = 100)  # X values for sine wave
+y_vals <- sin(x_vals-1.1)*1.4
+
+# Plot 2D scatter plot with sine wave overlay
+plot_ly() %>%
+  add_trace(
+    x = ~ds_2d[,1], y = ~ds_2d[,2], type = 'scatter', mode = 'markers',
+    marker = list(size = 10, colors = as.factor(labels)),
+    name = "Half-Moon Data"
+  ) %>%
+  # Line plot for sine wave
+  add_trace(
+    x = ~x_vals, y = ~y_vals, type = 'scatter', mode = 'lines',
+    line = list(color = 'red', width = 2),
+    name = "Sine Wave"
+  ) %>%
+  layout(
+    title = "2D Scatter Plot with Sine Wave",
+    xaxis = list(title = "X1"),
+    yaxis = list(title = "X2")
+  )
+```
+
+```{r}
+#| label: fig-3d
+#| fig-cap: "Transformed 3D data"
+#| warning: false
+ds_3d <- nipoet_convert_dataset_to_3d(ds_2d)
+
+plot_ly(x = ~ds_3d[,1], y = ~ds_3d[,2], z = ~ds_3d[, 3], type = 'scatter3d', mode = 'markers',
+        marker = list(size = 5), color = as.factor(labels)) %>%
+  layout(title = "3D Scatter Plot",
+          scene = list(
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2"),
+           zaxis = list(title = "X3")
+         ))
+
+```
+
+### 3D Regression
+
+Now a 3D logistic regression is performed on the new sererated dataset. The result is seen in @fig-logistic3d and shows, the dataset was successfully seperated with an accuracy of 100%.
+
+```{r}
+#| label: fig-logistic3d
+#| fig-cap: "3D Logistic Regression"
+#| warning: false
+
+nipoet_3d_logistic_regression(ds_3d, labels)
+
+```
+
+
+
+
+
+

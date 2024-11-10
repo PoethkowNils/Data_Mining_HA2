@@ -1,0 +1,87 @@
+---
+title: "Exercise 1"
+author: "Nils Poethkow"
+editor: visual
+format: 
+  html:
+    code-fold: true
+---
+```{r}
+#| echo: true
+
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+rm(list = ls())
+source("nipoet_functions_ex1.R")
+
+```
+
+## Creating the dataset
+
+```{r}
+#| label: fig-3dplot
+#| fig-cap: "Plot of 3D dataset"
+#| warning: false
+
+library(plotly)
+set.seed(123)
+
+# generate 3D data with different clustering characteristics
+X1 <- c(rnorm(50, mean = 0, sd = 0.3), rnorm(50, mean = 3, sd = 0.3))
+X2 <- c(rnorm(50, mean = 0, sd = 0.3), rnorm(50, mean = 2, sd = 0.3))
+X3 <- c(runif(100, min = -3, max = 3))  # Uniformly spread for low clustering in (X1, X3) and (X2, X3)
+
+ds <- cbind(X1, X2, X3)
+
+plot_ly(x = ~ds[,1], y = ~ds[,2], z = ~ds[,3], type = 'scatter3d', mode = 'markers',
+        marker = list(size = 10)) %>%
+  layout(title = "3D Scatter Plot",
+         scene = list(
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2"),
+           zaxis = list(title = "X3")
+         ))
+```
+
+@fig-3dplot shows the created dataset whith the desired behaviour.
+
+## Hopkins statistic
+
+Now the Hopkins statistic for every possible 2d combination of the dataset is calculated. As seen below, the dataset consists of each one combination with very poor, poor and good value for the Hopkins statistic. The result can be seen below, with the corresponding features for every result.
+
+```{r}
+
+combinations <- combn(c(1:ncol(ds)), 2)
+res <- rep(0, ncol(combinations))
+
+for (i in 1:ncol(combinations)) {
+  res[i] <- nipoet_hopkins_statistic(ds[ ,combinations[ ,i]])
+}
+
+order_indices <- order(res, decreasing=TRUE)
+sorted_res <- res[order_indices]
+sorted_combn <- combinations[, order_indices]
+
+cat("Good: ", res[1], "[", combinations[, 1],"]" ," | Poor: ", res[2], "[", combinations[, 2],"]"," | Very poor: ", res[3],"[", combinations[, 3],"]","\n")
+
+```
+
+## Feature Selection
+
+A feature selection algorithm was implemented to select the best 2-dimensional combination of features in a dataset. It was tested with the dataset seen in @fig-3dplot. As a result, feature 1 and 3 where chosen as the best possible 2D combination of features, as already seen above. Due to randomness in selecting the samples in the Hopkins statistic function (when no seed is set), the results differ.
+
+```{r}
+selection <- nipoet_feature_selection_2d(ds)
+
+cat("Best feature combination:", selection$best_combination, "| Hopkins statistic:", selection$highest_hopkins)
+```
+
+```{r}
+#| label: fig-features
+#| fig-cap: "Plot of 3D dataset"
+#| warning: false
+
+  nipoet_plot_3(ds)
+
+```
+
+@fig-features visusalizes the combination of every feture. Cleary, the first combination results in the best Hopkins score, due to it's clear clustering, unlike the other two combinations. The center one (always the combination of feature 1 and 3) shows clearly visible worse clustering behaviour, therefore a worse Hopkins score. Lastly, the right combination shows the worst clustering, because the data is less seperable by feature 2 in comparison to feature 1, so in combination with feature 3 the combination of 2 and 3 shows the worst clustering behaviour.

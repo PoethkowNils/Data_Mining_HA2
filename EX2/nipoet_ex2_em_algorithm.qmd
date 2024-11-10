@@ -1,0 +1,100 @@
+---
+title: "Exercise 2"
+author: "Nils Poethkow"
+editor: visual
+format: 
+  html:
+    code-fold: true
+---
+
+```{r}
+#| echo: true
+#| warning: false
+
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+rm(list = ls())
+source("nipoet_functions_ex2.R")
+
+```
+
+## Generate Datasets
+
+Create dataset as in the recent practice lesson. (Maybe better put this in functions file)
+```{r}
+#| label: fig-test
+#| fig-cap: "Plot of 2D dataset"
+#| warning: false
+
+library(plotly)
+
+ds <- get_dataset_03()
+
+plot_ly(x = ~ds[,1], y = ~ds[,2], z= ~ds[,3], type = 'scatter3d', mode = 'markers',
+        marker = list(size = 5)) %>%
+  layout(title = "3D Scatter Plot",
+          scene = list(
+           xaxis = list(title = "X1"),
+           yaxis = list(title = "X2"),
+           zaxis = list(title = "X3"))
+         )
+```
+
+## Kmeans
+
+The following plots show the convergence of the K-means algorithm of the before created dataset.
+```{r}
+#| warning: false
+
+kmeans_res <- nipoet_kmeans(ds, 3, plot=TRUE)
+# for k = 2
+# kmeans_res <- nipoet_kmeans(ds, 2, plot=TRUE)
+
+```
+
+@fig-kmeansplot shwos the final result of the K-means Algorithm with the assigned clusters.
+
+```{r}
+#| label: fig-kmeansplot
+#| fig-cap: "Final state of Kmeans-Algorithm"
+#| warning: false
+
+plot_ly(x = ~kmeans_res[,1], y = ~kmeans_res[,2], z = ~kmeans_res[,3], type = 'scatter3d', mode = 'markers',
+                marker = list(size = 5), color = as.factor(kmeans_res[,4]), colors = c("red", "blue")) %>%
+              layout(title = title,
+                    scene = list(
+                      xaxis = list(title = "X1"),
+                      yaxis = list(title = "X2"),
+                      zaxis = list(title = "X3")
+                    ))
+```
+
+## EM-algorithm
+
+The EM-algorithm is tested on the same dataset and a plot is created for every iteration of the algorithm.
+```{r}
+
+em_result <- nipoet_em_algorithm(ds, 3)
+# different k values, pick one 
+# em_result <- nipoet_em_algorithm(ds, 2)
+# em_result <- nipoet_em_algorithm(ds, 5)
+
+```
+
+@fig-emplot shows the final result of the EM-Algorithm with the assigned clusters.
+
+```{r}
+#| label: fig-emplot
+#| fig-cap: "Final state of EM-Algorithm"
+#| warning: false
+
+plot_ly(x = ~em_result[,1], y = ~em_result[,2], z = ~em_result[,3], type = 'scatter3d', mode = 'markers',
+                marker = list(size = 5), color = as.factor(em_result[,4]), colors = c("red", "blue")) %>%
+              layout(title = title,
+                    scene = list(
+                      xaxis = list(title = "X1"),
+                      yaxis = list(title = "X2"),
+                      zaxis = list(title = "X3")
+                    ))
+
+```
+
